@@ -9,12 +9,15 @@ def growth_rate(population, space):
     Higher population -> higher growth rate
     
     When space approaches 0, growth rate approaches 0 too.
+    growth_rate never exceeds space.
     When there's plenty of space, the space term should disappear.
     """
-    population_coeff = 1
+    population_coeff = 10000 # >0 larger means grow slower usually take 10xtotal space
     space_coeff = 1
-    population_rate = population_coeff * population
-    return population_rate * (1-np.exp(-space * space_coeff))
+    rate = space_coeff * space * (1-np.exp(-population/population_coeff))
+    rate = np.minimum(space, rate)
+    print('growth rate: ', rate)
+    return rate
 
 def next_state(population, space):
     """
@@ -23,7 +26,7 @@ def next_state(population, space):
     """
 
     unit_size = 1 # space that one unit of population takes
-    new_population = growth_rate(population, space) * population
+    new_population = growth_rate(population, space)
     return (population + new_population, space - new_population * unit_size)
     
 if __name__ == '__main__':
@@ -33,7 +36,8 @@ if __name__ == '__main__':
     pop = [initial_population]
     space = [initial_space]
     cyc = [cycle]
-    while cycle < 1000:
+    while cycle < 100 and space[-1] > 0:
+        print('cycle: ', cycle)
         cycle += 1
         cyc.append(cycle)
         next_pop, next_space = next_state(pop[-1], space[-1])
