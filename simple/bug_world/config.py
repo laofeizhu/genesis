@@ -1,4 +1,4 @@
 CONFIG = {
-    width: 12,
-    height: 10
+    'width': 120,
+    'height': 100,
 }
