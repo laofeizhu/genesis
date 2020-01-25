@@ -16,7 +16,7 @@ class Gender(Enum):
 class Bug(object):
     """The bug class"""
 
-    def __init__(self):
+    def __init__(self, size=None, point=None):
         # growth rate based on extra food / food deficiency
         self._GROWTH_RATE = 0.1
         # maintanence multiplier to size
@@ -26,9 +26,11 @@ class Bug(object):
         self._DIRS = [[0,1],[0,-1],[-1,0],[1,0]]
         # number of cycles that the bug can live
         self._AGE_LIMIT = 100
-        self._food_potential = [0,0,0,0]
-        self._size = 1
-        self._gender = Gender.MALE if random() < 0.5 else Gender.FEMALE
+        if point == None:
+          self.point = Point.random()
+        else:
+          self.point = point
+        self.size = size
 
     def grow(self, food):
         """
@@ -41,7 +43,7 @@ class Bug(object):
         size_change = (consumed_food - self._size * self._MAINTANENCE_RATE) * self._GROWTH_RATE
         return consumed_food
 
-    def food_dir(self):
+    def update_direction(self, smells):
         """
         if the current spot is not the food spot, bug will move towards
         the food.

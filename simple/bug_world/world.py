@@ -5,6 +5,7 @@ Distance is defined as the closest distance to the food.
 
 from mpl_toolkits import mplot3d
 
+from bug import Bug
 from config import CONFIG
 from geometry import Point, Vector
 import numpy as np
@@ -12,59 +13,82 @@ from matplotlib import pyplot as plt
 from matplotlib import cm
 
 class World(object):
-
-  def __init__(self):
+  def __init__(self, config=CONFIG):
     self._foods = []
     self._bugs = []
-    self._smells = np.zeros((CONFIG['width'], CONFIG['height']))
+    self._fields = {}
+    self._config = config
 
-  def place_bug(self, bug):
+  def _point_or_random(self, options):
+    if 'point' in options:
+      point = options['point']
+    else:
+      point = Point.random(self._config['dim'])
+    return point
+
+  def _size_or_default(self, options):
+    if 'size' in options:
+      size = options['size']
+    else:
+      size = self._config['default_size']
+    return size
+
+  def create_bug(self, options={}):
+    bug = Bug(point=self._point_or_random(options),
+              size=self._size_or_default(options))
     self._bugs.append(bug)
 
-  def place_food(self, food):
+  def create_food(self, options={}):
+    food = Food(size=self._size_or_default(options),
+                point=self._point_or_random(options))
     self._foods.append(food)
-    self.update_smells(food)
+    self._update_fields(food)
 
-  def update():
-    pass
+  def _update_fields(self, life):
+    if not hasattr(life, 'fields'):
+      return
+    for key, value in life.fields:
+      self._update_field(key, value)
 
-  def update_smells(self, food):
-    # TODO: use a function to avoid repetetion of the map iteration.
-    for x in range(CONFIG['width']):
-      for y in range(CONFIG['height']):
-        self._smells[x][y] += food.smell_map[x][y]
+  def _update_field(self, field_name, field_value):
+    if not field_name in self.fields:
+      self.fields['field_name'] = np.zeros(self._config.dim)
+    self.fields['field_name'] += field_value
 
-  def show(self):
+  def show(self, field_name):
     fig = plt.figure()
-    ax = plt.axes(projection='3d')
-    Y = np.arange(0,CONFIG['width'],1)
-    X = np.arange(0,CONFIG['height'],1)
+    ax = plt.axes()
+    Y = np.arange(0,self._config.dim[0],1)
+    X = np.arange(0,self._config.dim[1],1)
     X, Y = np.meshgrid(X, Y)
-    surf = ax.plot_surface(X, Y, np.log(self._smells), cmap=cm.coolwarm, antialiased=False)
+    surf = ax.pcolormesh(X, Y, np.log(self.fields['field_name']))
     fig.colorbar(surf)
+    for bug in self._bugs:
+      ax.plot(bug.pos.x, bug.pos.y, 'o', ms=10, color='r')
     plt.show()
-
-
 
 
 class Food(object):
 
   def __init__(self, size=10, point=None):
-    if point == None:
-      self.set_random_point()
-    else:
-      self.point = point
+    assert point != None
+    self.point = point
     self.size = size
-    self.smell_map = np.zeros((CONFIG['width'], CONFIG['height']))
-    self.update_smell_map()
 
   def set_random_point(self):
     self.point = Point.random()
 
+  # TODO: This should be inside World
   def update_smell_map(self):
     for x in range(CONFIG['width']):
       for y in range(CONFIG['height']):
         dist = self.point.distance_to(Point(x, y))  # optimize to use a cached map instead of creating the point each time.
-        self.smell_map[x][y] = self.size / (dist + .1) / (dist + .1)  # plus .1 to avoid singularity.
+        self.smells.map[x][y] = self.size / (dist + .1) / (dist + .1)  # plus .1 to avoid singularity.
 
+# All objects is actually a field. The world is a superposition of fields.
+class Field(object):
+  def __init__(self):
+    self.map = np.zeros((CONFIG.width, CONFIG.height))
 
+  def get_smell(self, point):
+    return self.map[point.x % CONFIG.width][point.y % CONFIG.height]
