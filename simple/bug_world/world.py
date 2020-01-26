@@ -21,7 +21,7 @@ class World(object):
 
   def _point_or_random(self, options):
     if 'point' in options:
-      point = options['point']
+      point = Point(options['point'][0], options['point'][1], self._config['dim'])
     else:
       point = Point.random(self._config['dim'])
     return point
@@ -41,28 +41,28 @@ class World(object):
   def create_food(self, options={}):
     food = Food(size=self._size_or_default(options),
                 point=self._point_or_random(options))
-    food.update_smell_field(self._config.dim)
+    food.update_smell_field(self._config['dim'])
     self._foods.append(food)
     self._update_fields(food)
 
   def _update_fields(self, life):
     if not hasattr(life, 'fields'):
       return
-    for key, value in life.fields:
+    for key, value in life.fields.items():
       self._update_field(key, value)
 
   def _update_field(self, field_name, field_value):
-    if not field_name in self.fields:
-      self.fields['field_name'] = np.zeros(self._config.dim)
-    self.fields['field_name'] += field_value
+    if not field_name in self._fields:
+      self._fields['field_name'] = np.zeros(self._config['dim'])
+    self._fields['field_name'] += field_value
 
   def show_field(self, field_name):
     fig = plt.figure()
     ax = plt.axes()
-    Y = np.arange(0,self._config.dim[0],1)
-    X = np.arange(0,self._config.dim[1],1)
+    Y = np.arange(0,self._config['dim'][0],1)
+    X = np.arange(0,self._config['dim'][1],1)
     X, Y = np.meshgrid(X, Y)
-    surf = ax.pcolormesh(X, Y, np.log(self.fields[field_name]))
+    surf = ax.pcolormesh(X, Y, np.log(self._fields[field_name]))
     fig.colorbar(surf)
     for bug in self._bugs:
       ax.plot(bug.pos.x, bug.pos.y, 'o', ms=10, color='r')
@@ -87,7 +87,7 @@ class Food(object):
     for x in range(dim[0]):
       for y in range(dim[1]):
         dist = self.point.distance_to(Point(x, y))  # optimize to use a cached map instead of creating the point each time.
-        self.smells.map[x][y] = self.size / (dist + .1) / (dist + .1)  # plus .1 to avoid singularity.
+        self.fields['smell'][x][y] = self.size / (dist + .1) / (dist + .1)  # plus .1 to avoid singularity.
 
 # All objects is actually a field. The world is a superposition of fields.
 class Field(object):
