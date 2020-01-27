@@ -20,6 +20,10 @@ class Point(object):
     v = Vector.from_points(self, p)
     return v.length()
 
+  def __eq__(self, other):
+    if self is None or other is None:
+      return True if self is None and other is None else False
+    return self.x == other.x and self.y == other.y and self.dim == other.dim
 
 class Vector(object):
 

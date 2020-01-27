@@ -1,4 +1,5 @@
 from world import World
+from geometry import Point
 
 import pytest
 
@@ -21,4 +22,4 @@ def test_create_food():
   world.create_food(options={'point': [1, 1]})
   assert len(world._foods) == 1
   assert world._foods[0].size == 10
-  assert world._foods[0].point == [1, 1]
+  assert world._foods[0].point == Point(1, 1, config['dim'])
