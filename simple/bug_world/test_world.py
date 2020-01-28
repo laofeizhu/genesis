@@ -11,6 +11,7 @@ def test_create_bug():
   }
   world = World(config)
   world.create_bug()
+  world.update()
   assert len(world._bugs) == 1
   assert world._bugs[0].size == config['default_bug_size']
 
@@ -21,6 +22,7 @@ def test_create_food():
   }
   world = World(config)
   world.create_food(options={'point': [1, 1]})
+  world.update()
   assert len(world._foods) == 1
   assert world._foods[0].size == 10
   assert world._foods[0].point == Point(1, 1, config['dim'])
@@ -29,7 +31,21 @@ def test_defaults():
   world = World()
   world.create_food()
   world.create_bug()
+  world.update()
   assert len(world._foods) == 1
   assert len(world._bugs) == 1
   world.show_field('smell', block=False)
   plt.close('all')
+
+def test_update():
+  config = {
+      'dim': [2, 3],
+      'default_bug_size': 10,
+  }
+  world = World(config)
+  world.create_food(options={'point': [1, 1]})
+  world.create_bug(options={'point': [1, 1]})
+  world.update()
+  assert world._bugs[0].smells.size == 8
+  assert world._bugs[0].smells[0] > 0
+  assert world._bugs[0].is_on_food == True

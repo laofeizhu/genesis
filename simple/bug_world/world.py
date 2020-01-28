@@ -38,6 +38,7 @@ class World(object):
     bug = Bug(point=self._point_or_random(options),
               size=self._size_or_default(options))
     self._bugs.append(bug)
+    self.update()
 
   def create_food(self, options={}):
     food = Food(size=self._size_or_default(options),
@@ -57,7 +58,35 @@ class World(object):
       self._fields[field_name] = np.zeros(self._config['dim'])
     self._fields[field_name] += field_value
 
+  def _clear_fields(self):
+    self._fields = {}
+
+  def _get_field(self, point, field_name='smell'):
+    if not field_name in self._fields:
+      return 0
+    return self._fields[field_name][point.x][point.y]
+
+  def _update_bug(self, bug):
+    for idx, d in enumerate(bug.DIRS):
+      bug.smells[idx] = self._get_field(bug.point.add(Vector(d[0], d[1])))
+      bug.is_on_food = self._is_food(bug.point)
+
+  def _is_food(self, point):
+    for food in self._foods:
+      if food.point == point:
+        return True
+    return False
+
+  def update(self):
+    """updates status"""
+    self._clear_fields()
+    for food in self._foods:
+      self._update_fields(food)
+    for bug in self._bugs:
+      self._update_bug(bug)
+
   def show_field(self, field_name, block=True):
+    self.update()
     fig = plt.figure()
     ax = plt.axes()
     X = np.arange(0,self._config['dim'][0],1)

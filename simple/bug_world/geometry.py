@@ -21,6 +21,9 @@ class Point(object):
     v = Vector.from_points(self, p)
     return v.length(dist_type=dist_type)
 
+  def add(self, v):
+    return Point((self.x + v.x) % self.dim[0], (self.y + v.y) % self.dim[1], self.dim)
+
   def __eq__(self, other):
     if self is None or other is None:
       return True if self is None and other is None else False

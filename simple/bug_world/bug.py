@@ -6,6 +6,7 @@ A bug that eats moves and reproduces.
     Bugs move in a 2d map to search for food. Food generates smell and bug has instinct to get the direction of food.
     Food can be consumed but new food generates at certain rate.
 """
+import numpy as np
 
 from enum import Enum
 
@@ -31,6 +32,9 @@ class Bug(object):
         else:
           self.point = point
         self.size = size
+        self.DIRS = ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))
+        self.smells = np.zeros([8, 1])
+        self.is_on_food = False
 
     def grow(self, food):
         """
