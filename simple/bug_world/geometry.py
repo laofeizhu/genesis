@@ -14,11 +14,12 @@ class Point(object):
   @classmethod
   def random(cls, dim):
     return Point(np.random.randint(low=0, high=dim[0]-1),
-                 np.random.randint(low=0, high=dim[1]-1))
+                 np.random.randint(low=0, high=dim[1]-1),
+                 dim=dim)
 
-  def distance_to(self, p):
+  def distance_to(self, p, dist_type='eculid'):
     v = Vector.from_points(self, p)
-    return v.length()
+    return v.length(dist_type=dist_type)
 
   def __eq__(self, other):
     if self is None or other is None:
@@ -41,5 +42,8 @@ class Vector(object):
     dy = dy if np.absolute(dy) < height / 2 else p2.y - np.sign(dy) * height - p1.y
     return Vector(dx, dy)
 
-  def length(self):
-    return np.sqrt(self.x * self.x + self.y * self.y)
+  def length(self, dist_type='eculid'):
+    if dist_type == 'eculid':
+      return np.sqrt(self.x * self.x + self.y * self.y)
+    elif dist_type == 'rect':
+      return np.absolute(self.x) + np.absolute(self.y)
