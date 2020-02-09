@@ -4,6 +4,7 @@ Distance is defined as the shortest path to the food.
 """
 
 import numpy as np
+import uuid
 
 from bug import Bug
 from config import CONFIG
@@ -17,18 +18,20 @@ from mpl_toolkits import mplot3d
 class Cell(Point):
   def __init__(self, x, y):
     super(Cell, self).__init__(x, y)
-    self.bugs = []
+    self.bugs = {}
     self.food = None
+    self.id = uuid.uuid4()
 
 
 class World(object):
   def __init__(self, config=CONFIG):
     self._foods = []
-    self._bugs = []
+    self._bugs = {}
     self._fields = {}
     self._config = config
-    row = [Cell()] * self._config['dim'][0]
-    self._cells = [list(row) for i in range(self._config['dim'][1])]
+    self._cells = [[Cell(i, j) for i in range(self._config['dim'][1])] for j in range(self._config['dim'][0])]
+    self._bug_cells = {}  # a dict from cell id to cell
+    self._food_cells = {} # a dict from cell id to cell
 
   def get_cell(self, x, y):
     # TODO: raise exception if out of range.
@@ -60,30 +63,56 @@ class World(object):
     # we need to know how many bugs are in one food grid. There's
     # a certain rule that how food are distributed among bugs.
     for bug in self._bugs:
-      bug.maybe_move()
+      move = bug.maybe_move()
+      self.handle_bug_move(move)
     # This will update food supplies field for bugs
-    law.calculate_food_for_bugs(self._bugs, self._foods)
+    law.calculate_food_for_bugs(self)
     for bug in self._bugs:
-      self._grow_bug(bug)
+      growth = bug.grow()
+      self.handle_bug_growth(growth)
 
-  def _grow_bug(self, bug):
+  def handle_bug_move(self, move):
     """
-    Grows the bug and reduce the size of food in the bug position
+    update world state for a bug move
     """
-    pass
+    if move is None:
+      return
+    from_point = move["from"]
+    to_point = move["to"]
+    from_cell = self.get_cell(from_point.x, from_point.y)
+    to_cell = self.get_cell(to_point.x, to_point.y)
+    bug = move["bug"]
+    del from_cell.bugs[bug.id]
+    if len(from_cell.bugs) == 0:
+      del self._bug_cells[from_cell.id]
+    to_cell.bugs[bug.id] = bug
+    if len(to_cell.bugs) == 1:
+      self._bug_cells[to_cell.id] = to_cell
+    self._update_bug(bug)
+
+  def _update_bug(self, bug):
+    for idx, d in enumerate(bug.get_dirs()):
+      p = bug.point.add(d)
+      bug.set_vision(idx, self._get_field(p, 'smell'))
+    bug.is_on_food = self.get_cell(bug.point.x, bug.point.y).food is not None    
 
   def create_bug(self, options={}):
     bug = Bug(point=self._point_or_random(options),
               size=self._size_or_default(options))
-    self.get_cell(bug.point.x, bug.point.y).bugs.append(bug)
-    self._bugs.append(bug)
+    cell = self.get_cell(bug.point.x, bug.point.y)
+    cell.bugs[bug.id] = bug
+    self._bug_cells[cell.id] = cell
+    self._bugs[bug.id] = bug
     self.update()
+    return bug
 
   def create_food(self, options={}):
     food = Food(size=self._size_or_default(options),
                 point=self._point_or_random(options))
     food.update_smell_field(self._config['dim'])
-    self.get_cell(food.point.x, food.point.y).food = food
+    cell = self.get_cell(food.point.x, food.point.y)
+    cell.food = food
+    self._food_cells[cell.id] = cell
     self._foods.append(food)
     self._update_fields(food)
 
@@ -106,23 +135,12 @@ class World(object):
       return 0
     return self._fields[field_name][point.x][point.y]
 
-  def _update_bug(self, bug):
-    for idx, d in enumerate(bug.DIRS):
-      bug.smells[idx] = self._get_field(bug.point.add(Vector(d[0], d[1])))
-      bug.is_on_food = self._is_food(bug.point)
-
-  def _is_food(self, point):
-    for food in self._foods:
-      if food.point == point:
-        return True
-    return False
-
   def update(self):
     """updates status"""
     self._clear_fields()
     for food in self._foods:
       self._update_fields(food)
-    for bug in self._bugs:
+    for _, bug in self._bugs.items():
       self._update_bug(bug)
 
   def show_field(self, field_name, block=True):
@@ -134,6 +152,6 @@ class World(object):
     X, Y = np.meshgrid(X, Y)
     surf = ax.pcolormesh(X, Y, np.log(self._fields[field_name].T))
     fig.colorbar(surf)
-    for bug in self._bugs:
+    for _, bug in self._bugs.items():
       ax.plot(bug.point.x, bug.point.y, 'o', ms=10, color='r')
     plt.show(block=block)

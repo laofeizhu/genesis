@@ -11,13 +11,13 @@ class TestWorld(unittest.TestCase):
         'default_bug_size': 5,
     }
     world = World(config)
-    world.create_bug()
+    bug = world.create_bug()
     world.update()
     self.assertEqual(len(world._bugs), 1)
-    self.assertEqual(world._bugs[0].size, config['default_bug_size'])
-    bug = world._bugs[0]
+    self.assertEqual(world._bugs[bug.id].size, config['default_bug_size'])
     bug_cell = world.get_cell(bug.point.x, bug.point.y)
     self.assertEqual(len(bug_cell.bugs), 1)
+    self.assertEqual(len(world._bug_cells), 1)
 
   def test_create_food(self):
     config = {
@@ -33,6 +33,7 @@ class TestWorld(unittest.TestCase):
     food = world._foods[0]
     food_cell = world.get_cell(food.point.x, food.point.y)
     self.assertIsNotNone(food_cell.food)
+    self.assertEqual(len(world._food_cells), 1)
 
   def test_defaults(self):
     world = World()
@@ -51,8 +52,8 @@ class TestWorld(unittest.TestCase):
     }
     world = World(config)
     world.create_food(options={'point': [1, 1]})
-    world.create_bug(options={'point': [1, 1]})
+    bug = world.create_bug(options={'point': [1, 1]})
     world.update()
-    self.assertEqual( world._bugs[0].smells.size, 8)
-    self.assertTrue( world._bugs[0].smells[0] > 0)
-    self.assertTrue( world._bugs[0].is_on_food)
+    self.assertEqual(len(world._bugs[bug.id]._vision), 8)
+    self.assertTrue(world._bugs[bug.id]._vision[0] > 0)
+    self.assertTrue(world._bugs[bug.id].is_on_food)

@@ -7,12 +7,16 @@ A bug that eats moves and reproduces.
     Food can be consumed but new food generates at certain rate.
 """
 import numpy as np
+import uuid
 
 from enum import Enum
+from geometry import Point, Vector
+
 
 class Gender(Enum):
     MALE = 1
     FEMALE = 2
+
 
 class Bug(object):
     """The bug class"""
@@ -24,17 +28,39 @@ class Bug(object):
         self._MAINTANENCE_RATE = 0.1
         # max food multiplier to size
         self._MAX_FOOD_RATE = 1
-        self._DIRS = [[0,1],[0,-1],[-1,0],[1,0]]
         # number of cycles that the bug can live
         self._AGE_LIMIT = 100
+        self.age = 0
+        self.id = uuid.uuid4()
         if point == None:
-          self.point = Point.random()
+            self.point = Point.random()
         else:
-          self.point = point
+            self.point = point
         self.size = size
-        self.DIRS = ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))
-        self.smells = np.zeros([8, 1])
-        self.is_on_food = False
+        self.DIRS = [Vector(v[0], v[1]) for v in ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))]
+        self._vision = [0] * 8
+        self.dir = self.DIRS[0]
+        self.is_on_food=False
+
+    def maybe_move(self):
+        # maybe move the bug and return a dict indicating the move
+        if not self._should_move():
+            return None
+        return {
+                "from": self.point,
+                "to": self.point.add(self.choose_direction()),
+                "bug": self,
+            }
+
+    def _should_move(self):
+        """ this is a super simple logic for now """
+        return not self.is_on_food
+        
+    def get_dirs(self):
+        return self.DIRS
+
+    def set_vision(self, idx, v):
+        self._vision[idx] = v
 
     def grow(self, food):
         """
@@ -43,23 +69,26 @@ class Bug(object):
         Return:
             consumed food
         """
-        consumed_food = np.minimum(food, self._size * self._MAX_FOOD_RATE)
-        size_change = (consumed_food - self._size * self._MAINTANENCE_RATE) * self._GROWTH_RATE
-        return consumed_food
+        consumed_food=np.minimum(food, self._size * self._MAX_FOOD_RATE)
+        size_change=(consumed_food - self._size *
+                       self._MAINTANENCE_RATE) * self._GROWTH_RATE
+        self.age += 1
+        return {
+            "consumed_food": consumed_food,
+            "is_live": self.age > self._AGE_LIMIT,
+            "bug": self,
+        }
 
-    def update_direction(self, smells):
+    def choose_direction(self):
         """
         if the current spot is not the food spot, bug will move towards
         the food.
         Bug knows the food potential in all four directions.
         """
-        max = -1
-        dir = [0, 1]
-        for i in range(4):
-            if self._food_potential[i] > max:
-                max = self._food_potential[i]
-                dir = self.DIRS[i]
+        max=-1
+        dir=[0, 1]
+        for idx, d in enumerate(self.DIRS):
+            if self._vision[idx] > max:
+                max = self._vision[idx]
+                dir = d
         return dir
-
-
-
