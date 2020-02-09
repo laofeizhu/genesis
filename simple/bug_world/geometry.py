@@ -29,6 +29,13 @@ class Point(object):
       return True if self is None and other is None else False
     return self.x == other.x and self.y == other.y and self.dim == other.dim
 
+  def __str__(self):
+    d = {
+      'x': self.x,
+      'y': self.y,
+    }
+    return str(d)
+
 class Vector(object):
 
   def __init__(self, x, y):

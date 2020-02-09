@@ -36,7 +36,7 @@ class Bug(object):
             self.point = Point.random()
         else:
             self.point = point
-        self.size = size
+        self._size = size
         self.DIRS = [Vector(v[0], v[1]) for v in ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))]
         self._vision = [0] * 8
         self.dir = self.DIRS[0]
@@ -46,11 +46,16 @@ class Bug(object):
         # maybe move the bug and return a dict indicating the move
         if not self._should_move():
             return None
-        return {
+        d = self.choose_direction()
+        move = {
                 "from": self.point,
-                "to": self.point.add(self.choose_direction()),
+                "to": self.point.add(d),
                 "bug": self,
             }
+        
+        self.point = move["to"]
+        return move
+
 
     def _should_move(self):
         """ this is a super simple logic for now """
@@ -69,6 +74,8 @@ class Bug(object):
         Return:
             consumed food
         """
+        if food is None:
+            return None
         consumed_food=np.minimum(food, self._size * self._MAX_FOOD_RATE)
         size_change=(consumed_food - self._size *
                        self._MAINTANENCE_RATE) * self._GROWTH_RATE

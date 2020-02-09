@@ -32,24 +32,7 @@ class World(object):
     self._cells = [[Cell(i, j) for i in range(self._config['dim'][1])] for j in range(self._config['dim'][0])]
     self._bug_cells = {}  # a dict from cell id to cell
     self._food_cells = {} # a dict from cell id to cell
-
-  def get_cell(self, x, y):
-    # TODO: raise exception if out of range.
-    return self._cells[x][y]
-
-  def _point_or_random(self, options):
-    if 'point' in options:
-      point = Point(options['point'][0], options['point'][1], self._config['dim'])
-    else:
-      point = Point.random(self._config['dim'])
-    return point
-
-  def _size_or_default(self, options):
-    if 'size' in options:
-      size = options['size']
-    else:
-      size = self._config['default_bug_size']
-    return size
+    self._step_count = 0
 
   def step(self):
     """
@@ -58,20 +41,64 @@ class World(object):
     For all the foods, update their size based on consumption.
     After food update, update fields.
     """
-    self.step_count += 1
+    self._step_count += 1
     # Bugs can eat or move in one step.
     # we need to know how many bugs are in one food grid. There's
     # a certain rule that how food are distributed among bugs.
-    for bug in self._bugs:
+    for _, bug in self._bugs.items():
       move = bug.maybe_move()
-      self.handle_bug_move(move)
+      self._handle_bug_move(move)
     # This will update food supplies field for bugs
-    law.calculate_food_for_bugs(self)
-    for bug in self._bugs:
-      growth = bug.grow()
-      self.handle_bug_growth(growth)
+    # law.calculate_food_for_bugs(self)
+    for _, bug in self._bugs.items():
+      growth = bug.grow(None)
+      self._handle_bug_growth(growth)
 
-  def handle_bug_move(self, move):
+  def create_bug(self, options={}):
+    bug = Bug(point=self._point_or_random(options),
+              size=self._size_or_default(options))
+    cell = self.get_cell(bug.point.x, bug.point.y)
+    cell.bugs[bug.id] = bug
+    self._bug_cells[cell.id] = cell
+    self._bugs[bug.id] = bug
+    self.update()
+    return bug
+
+  def create_food(self, options={}):
+    food = Food(size=self._size_or_default(options),
+                point=self._point_or_random(options))
+    food.update_smell_field(self._config['dim'])
+    cell = self.get_cell(food.point.x, food.point.y)
+    cell.food = food
+    self._food_cells[cell.id] = cell
+    self._foods.append(food)
+    self._update_fields(food)
+
+  def update(self):
+    """updates status"""
+    self._clear_fields()
+    for food in self._foods:
+      self._update_fields(food)
+    for _, bug in self._bugs.items():
+      self._update_bug(bug)
+
+  def show_field(self, field_name, block=True):
+    self.update()
+    fig = plt.figure()
+    ax = plt.axes()
+    X = np.arange(0,self._config['dim'][0],1)
+    Y = np.arange(0,self._config['dim'][1],1)
+    X, Y = np.meshgrid(X, Y)
+    surf = ax.pcolormesh(X, Y, np.log(self._fields[field_name].T))
+    fig.colorbar(surf)
+    for _, bug in self._bugs.items():
+      ax.plot(bug.point.x, bug.point.y, 'o', ms=10, color='r')
+    plt.show(block=block)
+
+  def _handle_bug_growth(self, growth):
+    pass
+
+  def _handle_bug_move(self, move):
     """
     update world state for a bug move
     """
@@ -94,27 +121,7 @@ class World(object):
     for idx, d in enumerate(bug.get_dirs()):
       p = bug.point.add(d)
       bug.set_vision(idx, self._get_field(p, 'smell'))
-    bug.is_on_food = self.get_cell(bug.point.x, bug.point.y).food is not None    
-
-  def create_bug(self, options={}):
-    bug = Bug(point=self._point_or_random(options),
-              size=self._size_or_default(options))
-    cell = self.get_cell(bug.point.x, bug.point.y)
-    cell.bugs[bug.id] = bug
-    self._bug_cells[cell.id] = cell
-    self._bugs[bug.id] = bug
-    self.update()
-    return bug
-
-  def create_food(self, options={}):
-    food = Food(size=self._size_or_default(options),
-                point=self._point_or_random(options))
-    food.update_smell_field(self._config['dim'])
-    cell = self.get_cell(food.point.x, food.point.y)
-    cell.food = food
-    self._food_cells[cell.id] = cell
-    self._foods.append(food)
-    self._update_fields(food)
+    bug.is_on_food = self.get_cell(bug.point.x, bug.point.y).food is not None
 
   def _update_fields(self, life):
     if not hasattr(life, 'fields'):
@@ -135,23 +142,20 @@ class World(object):
       return 0
     return self._fields[field_name][point.x][point.y]
 
-  def update(self):
-    """updates status"""
-    self._clear_fields()
-    for food in self._foods:
-      self._update_fields(food)
-    for _, bug in self._bugs.items():
-      self._update_bug(bug)
+  def get_cell(self, x, y):
+    # TODO: raise exception if out of range.
+    return self._cells[x][y]
 
-  def show_field(self, field_name, block=True):
-    self.update()
-    fig = plt.figure()
-    ax = plt.axes()
-    X = np.arange(0,self._config['dim'][0],1)
-    Y = np.arange(0,self._config['dim'][1],1)
-    X, Y = np.meshgrid(X, Y)
-    surf = ax.pcolormesh(X, Y, np.log(self._fields[field_name].T))
-    fig.colorbar(surf)
-    for _, bug in self._bugs.items():
-      ax.plot(bug.point.x, bug.point.y, 'o', ms=10, color='r')
-    plt.show(block=block)
+  def _point_or_random(self, options):
+    if 'point' in options:
+      point = Point(options['point'][0], options['point'][1], self._config['dim'])
+    else:
+      point = Point.random(self._config['dim'])
+    return point
+
+  def _size_or_default(self, options):
+    if 'size' in options:
+      size = options['size']
+    else:
+      size = self._config['default_bug_size']
+    return size
