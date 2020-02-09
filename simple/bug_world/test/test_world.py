@@ -15,6 +15,9 @@ class TestWorld(unittest.TestCase):
     world.update()
     self.assertEqual(len(world._bugs), 1)
     self.assertEqual(world._bugs[0].size, config['default_bug_size'])
+    bug = world._bugs[0]
+    bug_cell = world.get_cell(bug.point.x, bug.point.y)
+    self.assertEqual(len(bug_cell.bugs), 1)
 
   def test_create_food(self):
     config = {
@@ -27,6 +30,9 @@ class TestWorld(unittest.TestCase):
     self.assertEqual(len(world._foods), 1)
     self.assertEqual(world._foods[0].size, 10)
     self.assertEqual(world._foods[0].point, Point(1, 1, config['dim']))
+    food = world._foods[0]
+    food_cell = world.get_cell(food.point.x, food.point.y)
+    self.assertIsNotNone(food_cell.food)
 
   def test_defaults(self):
     world = World()
