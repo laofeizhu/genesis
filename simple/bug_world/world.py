@@ -51,7 +51,7 @@ class World(object):
     # This will update food supplies field for bugs
     # law.calculate_food_for_bugs(self)
     for _, bug in self._bugs.items():
-      growth = bug.grow(None)
+      growth = bug.grow()
       self._handle_bug_growth(growth)
 
   def create_bug(self, options={}):
