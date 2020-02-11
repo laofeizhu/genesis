@@ -81,6 +81,20 @@ class Bug(object):
   def set_vision(self, idx, v):
     self._vision[idx] = v
 
+  def _calc_maintain(self):
+    MT_SIZE_RATIO = 1
+    MT_AGE_RATIO = 0.1
+    return self._size * MT_SIZE_RATIO + self.age * MT_AGE_RATIO
+
+  def _calc_max_food(self):
+    MF_SIZE_RATIO = 2
+    MF_AGE_RATIO = 0.2
+    return self._size * MF_SIZE_RATIO + self.age * MF_AGE_RATIO
+
+  def _calc_growth(self, food_consumption, food_maintain):
+    GROWTH_RATE = 0.1
+    return (food_consumption - food_maintain) * GROWTH_RATE
+  
   def grow(self):
     """
         calculates the growth of the bug based on food supply
@@ -88,16 +102,17 @@ class Bug(object):
         food.
         Return:
             consumed food
-        """
-    if self.food_supply == 0:
-      return None
-    consumed_food = np.minimum(food, self._size * self._MAX_FOOD_RATE)
-    size_change = (consumed_food -
-                   self._size * self._MAINTANENCE_RATE) * self._GROWTH_RATE
+    """
+    food_maintain = self._calc_maintain()
+    food_max = self._calc_max_food()
+    consumed = min(food_max, self.food_supply)
+    growth = self._calc_growth(consumed, food_maintain)
+    self._size += growth
     self.age += 1
+    self.food_supply = 0
     return {
         "consumed_food": consumed_food,
-        "is_live": self.age > self._AGE_LIMIT,
+        "is_live": self.age < self._AGE_LIMIT,
         "bug": self,
     }
 

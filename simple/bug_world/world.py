@@ -49,7 +49,7 @@ class World(object):
       move = bug.maybe_move()
       self._handle_bug_move(move)
     # This will update food supplies field for bugs
-    # law.calculate_food_for_bugs(self)
+    law.calculate_food_for_bugs(self)
     for _, bug in self._bugs.items():
       growth = bug.grow()
       self._handle_bug_growth(growth)
@@ -96,7 +96,7 @@ class World(object):
     plt.show(block=block)
 
   def _handle_bug_growth(self, growth):
-    pass
+    # check if bug is dead and remove it if so.
 
   def _handle_bug_move(self, move):
     """
