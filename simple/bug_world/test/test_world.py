@@ -9,6 +9,7 @@ class TestWorld(unittest.TestCase):
     config = {
         'dim': [2, 3],
         'default_bug_size': 5,
+        "default_food_size": 5,
     }
     world = World(config)
     bug = world.create_bug()
@@ -23,13 +24,14 @@ class TestWorld(unittest.TestCase):
     config = {
         'dim': [2, 3],
         'default_bug_size': 10,
+        "default_food_size": 5,
     }
     world = World(config)
-    world.create_food(options={'point': [1, 1]})
+    food = world.create_food(options={'point': [1, 1]})
     self.assertEqual(len(world._foods), 1)
-    self.assertEqual(world._foods[0].size, 10)
-    self.assertEqual(world._foods[0].point, Point(1, 1, config['dim']))
-    food = world._foods[0]
+    self.assertEqual(world._foods[food.id].size, 5)
+    self.assertEqual(world._foods[food.id].point, Point(1, 1, config['dim']))
+    self.assertEqual(food, world._foods[food.id])
     food_cell = world.get_cell(food.point.x, food.point.y)
     self.assertIsNotNone(food_cell.food)
     self.assertEqual(len(world._food_cells), 1)
@@ -48,6 +50,7 @@ class TestWorld(unittest.TestCase):
     config = {
         'dim': [2, 3],
         'default_bug_size': 10,
+        "default_food_size": 5,
     }
     world = World(config)
     world.create_food(options={'point': [1, 1]})
@@ -60,6 +63,7 @@ class TestWorld(unittest.TestCase):
     config = {
         'dim': [20, 1],
         'default_bug_size': 10,
+        "default_food_size": 5,
     }
     world = World(config)
     world.create_food(options={'point': [0, 0]})
@@ -71,3 +75,61 @@ class TestWorld(unittest.TestCase):
     self.assertEqual(bug_not_on_food_1.point.x, 4)
     self.assertEqual(bug_not_on_food_2.point.x, 16)
     self.assertEqual(bug_on_food.point.x, 0)
+
+  def test_bug_grow_bigger(self):
+    config = {
+        'dim': [20, 1],
+        'default_bug_size': 1,
+        "default_food_size": 5,
+    }
+    world = World(config)
+    world.create_food(options={'point': [0, 0]})
+    bug = world.create_bug(options={'point': [0, 0]})
+    size_before = bug._size
+    world.step()
+    size_after = bug._size
+    self.assertTrue(size_after > size_before)
+
+  def test_bug_grow_smaller(self):
+    config = {
+        'dim': [20, 1],
+        'default_bug_size': 5,
+        "default_food_size": 1,
+    }
+    world = World(config)
+    world.create_food(options={'point': [0, 0]})
+    bug = world.create_bug(options={'point': [0, 0]})
+    size_before = bug._size
+    world.step()
+    size_after = bug._size
+    self.assertTrue(size_after < size_before)
+
+  def test_bug_starve_to_death(self):
+    config = {
+        'dim': [20, 1],
+        'default_bug_size': 5,
+        "default_food_size": 1,
+    }
+    world = World(config)
+    bug = world.create_bug(options={'point': [0, 0]})
+    for _ in range(10):
+      world.step()
+    self.assertEqual(len(world._bugs), 0)
+    self.assertEqual(len(world._bug_cells), 0)
+
+  def test_bug_eat_up_food(self):
+    config = {
+        'dim': [20, 1],
+        'default_bug_size': 5,
+        "default_food_size": 1,
+    }
+    world = World(config)
+    world.create_food(options={'point': [0, 0]})
+    bug = world.create_bug(options={'point': [0, 0]})
+    self.assertEqual(len(world._foods), 1)
+    self.assertEqual(len(world._food_cells), 1)
+    for _ in range(10):
+      world.step()
+    self.assertEqual(len(world._foods), 0)
+    self.assertEqual(len(world._food_cells), 0)
+

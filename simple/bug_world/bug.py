@@ -94,6 +94,11 @@ class Bug(object):
   def _calc_growth(self, food_consumption, food_maintain):
     GROWTH_RATE = 0.1
     return (food_consumption - food_maintain) * GROWTH_RATE
+
+  def _calc_size_thres(self):
+    """ lower limit of size. bugs smaller than this size will die """
+    SIZE_THRES_AGE_RATIO = 0.5
+    return self.age * SIZE_THRES_AGE_RATIO
   
   def grow(self):
     """
@@ -110,9 +115,10 @@ class Bug(object):
     self._size += growth
     self.age += 1
     self.food_supply = 0
+    too_thin = self._size < self._calc_size_thres()
     return {
-        "consumed_food": consumed_food,
-        "is_live": self.age < self._AGE_LIMIT,
+        "consumed_food": consumed,
+        "is_live": self.age < self._AGE_LIMIT and not too_thin,
         "bug": self,
     }
 

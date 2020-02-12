@@ -1,4 +1,5 @@
 import numpy as np
+import uuid
 
 from geometry import Point
 
@@ -9,6 +10,7 @@ class Food(object):
     self.point = point
     self.size = size
     self.fields = {'smell': None}
+    self.id = uuid.uuid4()
 
   def set_random_point(self):
     self.point = Point.random()

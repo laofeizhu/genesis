@@ -5,12 +5,12 @@ Distance is defined as the shortest path to the food.
 
 import numpy as np
 import uuid
+import law
 
 from bug import Bug
 from config import CONFIG
 from food import Food
 from geometry import Point, Vector
-from law import calculate_food_for_bugs
 from matplotlib import pyplot as plt
 from matplotlib import cm
 from mpl_toolkits import mplot3d
@@ -25,7 +25,7 @@ class Cell(Point):
 
 class World(object):
   def __init__(self, config=CONFIG):
-    self._foods = []
+    self._foods = {}
     self._bugs = {}
     self._fields = {}
     self._config = config
@@ -50,13 +50,15 @@ class World(object):
       self._handle_bug_move(move)
     # This will update food supplies field for bugs
     law.calculate_food_for_bugs(self)
-    for _, bug in self._bugs.items():
+    keys = tuple(self._bugs.keys())
+    for key in keys:
+      bug = self._bugs[key]
       growth = bug.grow()
       self._handle_bug_growth(growth)
 
   def create_bug(self, options={}):
     bug = Bug(point=self._point_or_random(options),
-              size=self._size_or_default(options))
+              size=self._size_or_default(options, "bug"))
     cell = self.get_cell(bug.point.x, bug.point.y)
     cell.bugs[bug.id] = bug
     self._bug_cells[cell.id] = cell
@@ -64,20 +66,35 @@ class World(object):
     self.update()
     return bug
 
+  def remove_bug(self, bug):
+    self._bugs.pop(bug.id)
+    cell = self.get_cell(bug.point.x, bug.point.y)
+    cell.bugs.pop(bug.id)
+    if len(cell.bugs) == 0:
+      self._bug_cells.pop(cell.id)
+    del bug
+
+  def remove_food(self, food):
+    self._foods.pop(food.id)
+    cell = self.get_cell(food.point.x, food.point.y)
+    self._food_cells.pop(cell.id)
+    del food
+
   def create_food(self, options={}):
-    food = Food(size=self._size_or_default(options),
+    food = Food(size=self._size_or_default(options, "food"),
                 point=self._point_or_random(options))
     food.update_smell_field(self._config['dim'])
     cell = self.get_cell(food.point.x, food.point.y)
     cell.food = food
+    self._foods[food.id] = food
     self._food_cells[cell.id] = cell
-    self._foods.append(food)
     self._update_fields(food)
+    return food
 
   def update(self):
     """updates status"""
     self._clear_fields()
-    for food in self._foods:
+    for _, food in self._foods.items():
       self._update_fields(food)
     for _, bug in self._bugs.items():
       self._update_bug(bug)
@@ -97,6 +114,19 @@ class World(object):
 
   def _handle_bug_growth(self, growth):
     # check if bug is dead and remove it if so.
+    # also update food.
+    bug = growth["bug"]
+    p = bug.point
+    cell = self.get_cell(p.x, p.y)
+    if not growth["is_live"]:
+      self.remove_bug(bug)
+    food = cell.food
+    if food is None:
+      return
+    food.size -= growth["consumed_food"]
+    if food.size == 0:
+      cell.food = None
+      self.remove_food(food)
 
   def _handle_bug_move(self, move):
     """
@@ -153,9 +183,10 @@ class World(object):
       point = Point.random(self._config['dim'])
     return point
 
-  def _size_or_default(self, options):
+  def _size_or_default(self, options, item):
+    key = "default_%s_size" % item
     if 'size' in options:
       size = options['size']
     else:
-      size = self._config['default_bug_size']
+      size = self._config[key]
     return size
