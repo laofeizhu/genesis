@@ -12,7 +12,7 @@ jobs:
       - python/install-deps
       - python/save-cache
       - run:
-          command: python -m unittest simple/bug_world
+          command: python -m unittest discover simple/bug_world
           name: test bug world
 
 workflows:
