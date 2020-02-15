@@ -18,7 +18,7 @@ class TestWorld(unittest.TestCase):
     world = World(config)
     bug = world.create_bug()
     self.assertEqual(len(world._bugs), 1)
-    self.assertEqual(world._bugs[bug.id]._size, config['default_bug_size'])
+    self.assertEqual(world._bugs[bug.id].size, config['default_bug_size'])
     bug_cell = world.get_cell(bug.point.x, bug.point.y)
     self.assertEqual(len(bug_cell.bugs), 1)
     self.assertTrue(bug.id in bug_cell.bugs)
@@ -89,9 +89,9 @@ class TestWorld(unittest.TestCase):
     world = World(config)
     world.create_food(options={'point': [0, 0]})
     bug = world.create_bug(options={'point': [0, 0]})
-    size_before = bug._size
+    size_before = bug.size
     world.step()
-    size_after = bug._size
+    size_after = bug.size
     self.assertTrue(size_after > size_before)
 
   def test_bug_grow_smaller(self):
@@ -103,9 +103,9 @@ class TestWorld(unittest.TestCase):
     world = World(config)
     world.create_food(options={'point': [0, 0]})
     bug = world.create_bug(options={'point': [0, 0]})
-    size_before = bug._size
+    size_before = bug.size
     world.step()
-    size_after = bug._size
+    size_after = bug.size
     self.assertTrue(size_after < size_before)
 
   def test_bug_starve_to_death(self):

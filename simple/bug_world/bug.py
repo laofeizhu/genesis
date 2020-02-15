@@ -25,7 +25,7 @@ class Gender(Enum):
 class Bug(object):
   """The bug class"""
 
-  def __init__(self, size=None, point=None):
+  def __init__(self, size=None, point=None, age=None):
     # growth rate based on extra food / food deficiency
     self._GROWTH_RATE = 0.1
     # maintanence multiplier to size
@@ -34,17 +34,16 @@ class Bug(object):
     self._MAX_FOOD_RATE = 1
     # number of cycles that the bug can live
     self._AGE_LIMIT = 100
-    # if current_size / expected_size_ratio * age < MIN_SIZE_RATIO, bug will
+    # if current_size / age < MIN_SIZE_RATIO, bug will
     # die because it's too thin.
-    self._MIN_SIZE_RATIO = 0.5
-    self.age = 0
+    self._MIN_SIZE_RATIO = 0.4
+    # each bug will have a random uuid
     self.id = uuid.uuid4()
-    if point == None:
-      self.point = Point.random()
-    else:
-      self.point = point
-    self._SIZE_AGE_RATIO = 1
-    self._size = size
+    # initialize bug status
+    self.size = size if size else 0
+    self.point = point if point else Point.random()
+    self.age = age if age else 0
+
     self.DIRS = [
         Vector(v[0], v[1]) for v in ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1),
                                      (-1, -1), (-1, 0), (-1, 1))
@@ -66,7 +65,7 @@ class Bug(object):
 
   def is_too_thin(self):
     """ bug will die if it's too think """
-    return self._size / self.age / self._SIZE_AGE_RATIO < self._MIN_SIZE_RATIO
+    return self.size / self.age < self._MIN_SIZE_RATIO
 
   def maybe_move(self):
     # maybe move the bug and return a dict indicating the move
@@ -95,12 +94,12 @@ class Bug(object):
   def _calc_maintain(self):
     MT_SIZE_RATIO = 1
     MT_AGE_RATIO = 0.1
-    return self._size * MT_SIZE_RATIO + self.age * MT_AGE_RATIO
+    return self.size * MT_SIZE_RATIO + self.age * MT_AGE_RATIO
 
   def _calc_max_food(self):
     MF_SIZE_RATIO = 2
     MF_AGE_RATIO = 0.2
-    return self._size * MF_SIZE_RATIO + self.age * MF_AGE_RATIO
+    return self.size * MF_SIZE_RATIO + self.age * MF_AGE_RATIO
 
   def _calc_growth(self, food_consumption, food_maintain):
     GROWTH_RATE = 0.1
@@ -123,10 +122,10 @@ class Bug(object):
     food_max = self._calc_max_food()
     consumed = min(food_max, self.food_supply)
     growth = self._calc_growth(consumed, food_maintain)
-    self._size += growth
+    self.size += growth
     self.age += 1
     self.food_supply = 0
-    too_thin = self._size < self._calc_size_thres()
+    too_thin = self.size < self._calc_size_thres()
     return {
         "consumed_food": consumed,
         "is_live": self.age < self._AGE_LIMIT and not too_thin,
