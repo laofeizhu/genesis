@@ -79,6 +79,13 @@ class TestWorld(unittest.TestCase):
     self.assertEqual(bug_not_on_food_1.point.x, 4)
     self.assertEqual(bug_not_on_food_2.point.x, 16)
     self.assertEqual(bug_on_food.point.x, 0)
+    bug_cell_before = world.get_cell(5, 0)
+    bug_cell_after = world.get_cell(4, 0)
+    self.assertEqual(len(bug_cell_before.bugs), 0)
+    self.assertEqual(len(bug_cell_after.bugs), 1)
+    self.assertTrue(bug_cell_before.id not in world._bug_cells)
+    self.assertTrue(bug_cell_after.id in world._bug_cells)
+
 
   def test_bug_grow_bigger(self):
     config = {

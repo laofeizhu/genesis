@@ -4,6 +4,7 @@ htmlcov
 
 *.pyc
 *.swp
+*.ipynb_checkpoints
 
 .vscode
 .coverage

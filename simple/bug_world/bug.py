@@ -56,7 +56,7 @@ class Bug(object):
   def get_data_dict(self, step):
     return {
         "id": self.id,
-        "size": self._size,
+        "size": self.size,
         "age": self.age,
         "point": (self.point.x, self.point.y),
         "step": step,
