@@ -3,9 +3,12 @@
 Distance is defined as the shortest path to the food.
 """
 
-import numpy as np
-import uuid
 import law
+import os
+import uuid
+
+import numpy as np
+import pandas as pd
 
 from bug import Bug
 from config import CONFIG
@@ -33,6 +36,20 @@ class World(object):
     self._bug_cells = {}  # a dict from cell id to cell
     self._food_cells = {} # a dict from cell id to cell
     self._step_count = 0
+
+  def record(self, path=None):
+    assert path is not None
+    bug_path = os.path.join(path, "bug.csv")
+    bug_df = pd.DataFrame(columns=[])
+    for _, bug in self._bugs.items():
+      bug_df = bug_df.append(bug.get_data_dict(self._step_count), ignore_index=True)
+    bug_df.to_csv(bug_path, mode='a', header=self._step_count==0, index=False)
+    food_path = os.path.join(path, "food.csv")
+    food_df = pd.DataFrame(columns=[])
+    for _, food in self._foods.items():
+      food_df = food_df.append(food.get_data_dict(self._step_count), ignore_index=True)
+    food_df.to_csv(food_path, mode='a', header=self._step_count==0, index=False)
+
 
   def step(self):
     """
