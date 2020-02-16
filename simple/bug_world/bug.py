@@ -102,7 +102,7 @@ class Bug(object):
     return self.size * MF_SIZE_RATIO + self.age * MF_AGE_RATIO
 
   def _calc_growth(self, food_consumption, food_maintain):
-    GROWTH_RATE = 0.1
+    GROWTH_RATE = 0.3
     return (food_consumption - food_maintain) * GROWTH_RATE
 
   def _calc_size_thres(self):
