@@ -60,12 +60,11 @@ class Bug(object):
         "step": step,
       }
 
-
   def is_too_thin(self):
     """ bug will die if it's too think """
     if self.age == 0:
       return False
-    MIN_SIZE_RATIO = 0.1
+    MIN_SIZE_RATIO = 0.5
     return self.size / self.age < MIN_SIZE_RATIO
 
   def maybe_move(self):
@@ -140,30 +139,30 @@ class Bug(object):
         strongest_smell = self._vision[idx]
         strongest_smell_dir = d
     return strongest_smell_dir
-  #
-  # def will_reproduce(self):
-  #   """
-  #     if the bug's size is large than a certain threshold it will split
-  #       into two bugs.
-  #     we can add more conditions for reproduction later
-  #   """
-  #   REPRODUCE_SIZE_THRESHOLD = 20
-  #   return self.size > REPRODUCE_SIZE_THRESHOLD
-  #
-  # def reproduce(self):
-  #   """
-  #       bug has a simple reproduction rule - splitting
-  #       the two new child bugs will start with age=0 and size equal to half
-  #       of their mothers, located in the mother's cell.
-  #   """
-  #   if not self.will_reproduce():
-  #     return None
-  #
-  #   reproduce_info = {
-  #       "size": self.size / 2.0,
-  #       "point": [self.point.x, self.point.y],
-  #       "mother_bug": self
-  #   }
-  #   return reproduce_info
+
+  def will_reproduce(self):
+    """
+      if the bug's size is large than a certain threshold it will split
+        into two bugs.
+      we can add more conditions for reproduction later
+    """
+    REPRODUCE_SIZE_THRESHOLD = 20
+    return self.size > REPRODUCE_SIZE_THRESHOLD
+
+  def reproduce(self):
+    """
+        bug has a simple reproduction rule - splitting
+        the two new child bugs will start with age=0 and size equal to half
+        of their mothers, located in the mother's cell.
+    """
+    if not self.will_reproduce():
+      return None
+
+    reproduce_info = {
+        "size": self.size / 2.0,
+        "point": [self.point.x, self.point.y],
+        "mother_bug": self
+    }
+    return reproduce_info
 
 
