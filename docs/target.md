@@ -1,9 +1,9 @@
 One possible achievement of this project is knowledge generator.
 
-Agents/robots in my virual world will be able to learn, think, and write.
+Agents/robots in my virtual world will be able to learn, think, and write.
 
 For example, if they are taught language, we could possibly put them in some
-environment so that they will be writing poems, novels, or even literatures in
+environment so that they will be writing poems, novels, or even literature in
 the form that we've never seen.
 
 Maybe they could also learn painting, architecture (in MineCraft) etc.
