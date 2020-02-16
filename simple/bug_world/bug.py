@@ -36,7 +36,7 @@ class Bug(object):
     self._AGE_LIMIT = 100
     # if current_size / age < MIN_SIZE_RATIO, bug will
     # die because it's too thin.
-    self._MIN_SIZE_RATIO = 0.4
+    self._MIN_SIZE_RATIO = 0.1
     # each bug will have a random uuid
     self.id = uuid.uuid4()
     # initialize bug status
@@ -102,7 +102,7 @@ class Bug(object):
     return self.size * MF_SIZE_RATIO + self.age * MF_AGE_RATIO
 
   def _calc_growth(self, food_consumption, food_maintain):
-    GROWTH_RATE = 0.3
+    GROWTH_RATE = 0.2
     return (food_consumption - food_maintain) * GROWTH_RATE
 
   def _calc_size_thres(self):
