@@ -128,6 +128,24 @@ class TestWorld(unittest.TestCase):
     self.assertEqual(len(world._bugs), 0)
     self.assertEqual(len(world._bug_cells), 0)
 
+  def test_bug_reproduction(self):
+    config = {
+        'dim': [5, 1],
+        'default_bug_size': 19,
+        "default_food_size": 100,
+    }
+    world = World(config)
+    world.create_bug(options={'point': [0, 0]})
+    world.create_food(options={'point': [0, 0]})
+    bug_cell = world.get_cell(0, 0)
+    self.assertEqual(len(world._bugs), 1)
+    world.step()
+    self.assertEqual(len(world._bugs), 1)
+    self.assertEqual(len(bug_cell.bugs), 1)
+    world.step()
+    self.assertEqual(len(world._bugs), 2)
+    self.assertEqual(len(bug_cell.bugs), 2)
+
   def test_bug_eat_up_food(self):
     config = {
         'dim': [20, 1],

@@ -12,6 +12,7 @@
 import numpy as np
 import pandas as pd
 import uuid
+import random
 
 from enum import Enum
 from geometry import Point, Vector
@@ -34,9 +35,6 @@ class Bug(object):
     self._MAX_FOOD_RATE = 1
     # number of cycles that the bug can live
     self._AGE_LIMIT = 100
-    # if current_size / age < MIN_SIZE_RATIO, bug will
-    # die because it's too thin.
-    self._MIN_SIZE_RATIO = 0.1
     # each bug will have a random uuid
     self.id = uuid.uuid4()
     # initialize bug status
@@ -62,10 +60,12 @@ class Bug(object):
         "step": step,
       }
 
-
   def is_too_thin(self):
     """ bug will die if it's too think """
-    return self.size / self.age < self._MIN_SIZE_RATIO
+    if self.age == 0:
+      return False
+    MIN_SIZE_RATIO = 0.1
+    return self.size / self.age < MIN_SIZE_RATIO
 
   def maybe_move(self):
     # maybe move the bug and return a dict indicating the move
@@ -105,11 +105,6 @@ class Bug(object):
     GROWTH_RATE = 0.2
     return (food_consumption - food_maintain) * GROWTH_RATE
 
-  def _calc_size_thres(self):
-    """ lower limit of size. bugs smaller than this size will die """
-    SIZE_THRES_AGE_RATIO = 0.5
-    return self.age * SIZE_THRES_AGE_RATIO
-
   def grow(self):
     """
         calculates the growth of the bug based on food supply
@@ -125,10 +120,9 @@ class Bug(object):
     self.size += growth
     self.age += 1
     self.food_supply = 0
-    too_thin = self.size < self._calc_size_thres()
     return {
         "consumed_food": consumed,
-        "is_live": self.age < self._AGE_LIMIT and not too_thin,
+        "is_live": self.age < self._AGE_LIMIT and not self.is_too_thin(),
         "bug": self,
     }
 
@@ -136,12 +130,44 @@ class Bug(object):
     """
         if the current spot is not the food spot, bug will move towards
         the food.
-        Bug knows the food potential in all four directions.
+        Bug knows the food potential in all eight directions.
         """
-    max = -1
-    dir = [0, 1]
+    strongest_smell = -1
+    strongest_smell_dir = [0, 1]
     for idx, d in enumerate(self.DIRS):
-      if self._vision[idx] > max:
-        max = self._vision[idx]
-        dir = d
-    return dir
+      if self._vision[idx] > strongest_smell:
+        strongest_smell = self._vision[idx]
+        strongest_smell_dir = d
+    return strongest_smell_dir
+
+  def will_reproduce(self):
+    """
+      if the bug's size is large than a certain threshold it will
+      try to reproduce
+      bugs too old won't reproduce
+      we can add more conditions for reproduction later
+    """
+    REPRODUCE_SIZE_THRESHOLD = 20
+    REPRODUCE_AGE_THRESHOLD = 40
+    return self.size > REPRODUCE_SIZE_THRESHOLD \
+           and self.age < REPRODUCE_AGE_THRESHOLD
+
+  def reproduce(self):
+    """
+        reproduction rule
+        mother bug will lose 1 size
+        kid will have initial size of 1
+    """
+    if not self.will_reproduce():
+      return None
+
+    self.size -= 1
+
+    return {
+        "size": 1,
+        "point": [self.point.x, self.point.y]
+    }
+
+
+
+
