@@ -63,18 +63,19 @@ class World(object):
     # Bugs can eat or move in one step.
     # we need to know how many bugs are in one food grid. There's
     # a certain rule that how food are distributed among bugs.
-    _current_bugs = copy.deepcopy(self._bugs)
-    for bug_id in _current_bugs.keys():
+    keys = tuple(self._bugs.keys())
+    for bug_id in keys:
       bug = self._bugs[bug_id]
+      # a step is a period of time and reproduction is instant, so
+      # a mother bug can reproduce and then move and grow in one step
       reproduce = bug.reproduce()
       self._handle_bug_reproduce(reproduce)
       move = bug.maybe_move()
       self._handle_bug_move(move)
     # This will update food supplies field for bugs
     law.calculate_food_for_bugs(self)
-    keys = tuple(self._bugs.keys())
-    for key in keys:
-      bug = self._bugs[key]
+    for bug_id in keys:
+      bug = self._bugs[bug_id]
       growth = bug.grow()
       self._handle_bug_growth(growth)
 
@@ -138,8 +139,6 @@ class World(object):
     if reproduce is None:
       return
     self.create_bug(reproduce)
-    self.create_bug(reproduce)
-    self.remove_bug(reproduce["mother_bug"])
 
   def _handle_bug_growth(self, growth):
     # check if bug is dead and remove it if so.

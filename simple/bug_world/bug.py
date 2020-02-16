@@ -64,7 +64,7 @@ class Bug(object):
     """ bug will die if it's too think """
     if self.age == 0:
       return False
-    MIN_SIZE_RATIO = 0.5
+    MIN_SIZE_RATIO = 0.1
     return self.size / self.age < MIN_SIZE_RATIO
 
   def maybe_move(self):
@@ -142,27 +142,32 @@ class Bug(object):
 
   def will_reproduce(self):
     """
-      if the bug's size is large than a certain threshold it will split
-        into two bugs.
+      if the bug's size is large than a certain threshold it will
+      try to reproduce
+      bugs too old won't reproduce
       we can add more conditions for reproduction later
     """
     REPRODUCE_SIZE_THRESHOLD = 20
-    return self.size > REPRODUCE_SIZE_THRESHOLD
+    REPRODUCE_AGE_THRESHOLD = 40
+    return self.size > REPRODUCE_SIZE_THRESHOLD \
+           and self.age < REPRODUCE_AGE_THRESHOLD
 
   def reproduce(self):
     """
-        bug has a simple reproduction rule - splitting
-        the two new child bugs will start with age=0 and size equal to half
-        of their mothers, located in the mother's cell.
+        reproduction rule
+        mother bug will lose 1 size
+        kid will have initial size of 1
     """
     if not self.will_reproduce():
       return None
 
-    reproduce_info = {
-        "size": self.size / 2.0,
-        "point": [self.point.x, self.point.y],
-        "mother_bug": self
+    self.size -= 1
+
+    return {
+        "size": 1,
+        "point": [self.point.x, self.point.y]
     }
-    return reproduce_info
+
+
 
 
