@@ -25,3 +25,6 @@ The interactive notebook can have the following features:
 * Select different steps
 
 Pandas and csv file seems more appropriate. Since JSON file seems not good for appending new data.
+
+Final decision: bug and food status are saved to bug.csv and food.csv file.
+Each row in the csv file indicates the status of one bug/food at one time instance.

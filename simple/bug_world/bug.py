@@ -10,6 +10,7 @@
     Food can be consumed but new food generates at certain rate.
 """
 import numpy as np
+import pandas as pd
 import uuid
 
 from enum import Enum
@@ -35,7 +36,7 @@ class Bug(object):
     self._AGE_LIMIT = 100
     # if current_size / age < MIN_SIZE_RATIO, bug will
     # die because it's too thin.
-    self._MIN_SIZE_RATIO = 0.4
+    self._MIN_SIZE_RATIO = 0.1
     # each bug will have a random uuid
     self.id = uuid.uuid4()
     # initialize bug status
@@ -51,6 +52,16 @@ class Bug(object):
     self.dir = self.DIRS[0]
     self.is_on_food = False
     self.food_supply = 0
+
+  def get_data_dict(self, step):
+    return {
+        "id": self.id,
+        "size": self.size,
+        "age": self.age,
+        "point": (self.point.x, self.point.y),
+        "step": step,
+      }
+
 
   def is_too_thin(self):
     """ bug will die if it's too think """
@@ -91,14 +102,14 @@ class Bug(object):
     return self.size * MF_SIZE_RATIO + self.age * MF_AGE_RATIO
 
   def _calc_growth(self, food_consumption, food_maintain):
-    GROWTH_RATE = 0.1
+    GROWTH_RATE = 0.2
     return (food_consumption - food_maintain) * GROWTH_RATE
 
   def _calc_size_thres(self):
     """ lower limit of size. bugs smaller than this size will die """
     SIZE_THRES_AGE_RATIO = 0.5
     return self.age * SIZE_THRES_AGE_RATIO
-  
+
   def grow(self):
     """
         calculates the growth of the bug based on food supply

@@ -1,4 +1,8 @@
+import os
+import tempfile
 import unittest
+
+import pandas as pd
 
 from geometry import Point
 from matplotlib import pyplot as plt
@@ -75,6 +79,13 @@ class TestWorld(unittest.TestCase):
     self.assertEqual(bug_not_on_food_1.point.x, 4)
     self.assertEqual(bug_not_on_food_2.point.x, 16)
     self.assertEqual(bug_on_food.point.x, 0)
+    bug_cell_before = world.get_cell(5, 0)
+    bug_cell_after = world.get_cell(4, 0)
+    self.assertEqual(len(bug_cell_before.bugs), 0)
+    self.assertEqual(len(bug_cell_after.bugs), 1)
+    self.assertTrue(bug_cell_before.id not in world._bug_cells)
+    self.assertTrue(bug_cell_after.id in world._bug_cells)
+
 
   def test_bug_grow_bigger(self):
     config = {
@@ -132,4 +143,31 @@ class TestWorld(unittest.TestCase):
       world.step()
     self.assertEqual(len(world._foods), 0)
     self.assertEqual(len(world._food_cells), 0)
+
+  def test_record(self):
+    config = {
+        'dim': [20, 1],
+        'default_bug_size': 5,
+        "default_food_size": 100,
+    }
+    world = World(config)
+    world.create_food(options={'point': [0, 0]})
+    bug = world.create_bug(options={'point': [0, 0]})
+    bug2 = world.create_bug(options={'point': [1, 0]})
+    with tempfile.TemporaryDirectory() as temp_dir:
+      world.record(temp_dir)
+      bug_file_path = os.path.join(temp_dir, "bug.csv")
+      food_file_path = os.path.join(temp_dir, "food.csv")
+      self.assertTrue(os.path.isfile(bug_file_path))
+      self.assertTrue(os.path.isfile(food_file_path))
+      bug_df = pd.read_csv(bug_file_path)
+      self.assertEqual(bug_df.shape[0], 2)
+      food_df = pd.read_csv(food_file_path)
+      self.assertEqual(food_df.shape[0], 1)
+      world.step()
+      world.record(temp_dir)
+      bug_df = pd.read_csv(bug_file_path)
+      self.assertEqual(bug_df.shape[0], 4)
+      food_df = pd.read_csv(food_file_path)
+      self.assertEqual(food_df.shape[0], 2)
 

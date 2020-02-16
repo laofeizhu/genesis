@@ -12,6 +12,14 @@ class Food(object):
     self.fields = {'smell': None}
     self.id = uuid.uuid4()
 
+  def get_data_dict(self, step):
+    return {
+        "id": self.id,
+        "size": self.size,
+        "point": (self.point.x, self.point.y),
+        "step": step,
+        }
+
   def set_random_point(self):
     self.point = Point.random()
 
