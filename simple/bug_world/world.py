@@ -6,6 +6,7 @@ Distance is defined as the shortest path to the food.
 import law
 import os
 import uuid
+import copy
 
 import numpy as np
 import pandas as pd
@@ -62,7 +63,10 @@ class World(object):
     # Bugs can eat or move in one step.
     # we need to know how many bugs are in one food grid. There's
     # a certain rule that how food are distributed among bugs.
-    for _, bug in self._bugs.items():
+    _current_bugs = copy.deepcopy(self._bugs)
+    for _, bug in _current_bugs.items():
+      # reproduce = bug.reproduce()
+      # self._handle_bug_reproduce(reproduce)
       move = bug.maybe_move()
       self._handle_bug_move(move)
     # This will update food supplies field for bugs
@@ -128,6 +132,13 @@ class World(object):
     for _, bug in self._bugs.items():
       ax.plot(bug.point.x, bug.point.y, 'o', ms=10, color='r')
     plt.show(block=block)
+
+  # def _handle_bug_reproduce(self, reproduce):
+  #   if reproduce is None:
+  #     return
+  #   self.create_bug(reproduce)
+  #   self.create_bug(reproduce)
+  #   self.remove_bug(reproduce["mother_bug"])
 
   def _handle_bug_growth(self, growth):
     # check if bug is dead and remove it if so.

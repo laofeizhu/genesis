@@ -12,6 +12,7 @@
 import numpy as np
 import pandas as pd
 import uuid
+import random
 
 from enum import Enum
 from geometry import Point, Vector
@@ -34,9 +35,6 @@ class Bug(object):
     self._MAX_FOOD_RATE = 1
     # number of cycles that the bug can live
     self._AGE_LIMIT = 100
-    # if current_size / age < MIN_SIZE_RATIO, bug will
-    # die because it's too thin.
-    self._MIN_SIZE_RATIO = 0.1
     # each bug will have a random uuid
     self.id = uuid.uuid4()
     # initialize bug status
@@ -65,7 +63,10 @@ class Bug(object):
 
   def is_too_thin(self):
     """ bug will die if it's too think """
-    return self.size / self.age < self._MIN_SIZE_RATIO
+    if self.age == 0:
+      return False
+    MIN_SIZE_RATIO = 0.1
+    return self.size / self.age < MIN_SIZE_RATIO
 
   def maybe_move(self):
     # maybe move the bug and return a dict indicating the move
@@ -122,7 +123,7 @@ class Bug(object):
     self.food_supply = 0
     return {
         "consumed_food": consumed,
-        "is_live": self.age < self._AGE_LIMIT and not is_too_thin,
+        "is_live": self.age < self._AGE_LIMIT and not self.is_too_thin(),
         "bug": self,
     }
 
@@ -130,12 +131,39 @@ class Bug(object):
     """
         if the current spot is not the food spot, bug will move towards
         the food.
-        Bug knows the food potential in all four directions.
+        Bug knows the food potential in all eight directions.
         """
-    max = -1
-    dir = [0, 1]
+    strongest_smell = -1
+    strongest_smell_dir = [0, 1]
     for idx, d in enumerate(self.DIRS):
-      if self._vision[idx] > max:
-        max = self._vision[idx]
-        dir = d
-    return dir
+      if self._vision[idx] > strongest_smell:
+        strongest_smell = self._vision[idx]
+        strongest_smell_dir = d
+    return strongest_smell_dir
+  #
+  # def will_reproduce(self):
+  #   """
+  #     if the bug's size is large than a certain threshold it will split
+  #       into two bugs.
+  #     we can add more conditions for reproduction later
+  #   """
+  #   REPRODUCE_SIZE_THRESHOLD = 20
+  #   return self.size > REPRODUCE_SIZE_THRESHOLD
+  #
+  # def reproduce(self):
+  #   """
+  #       bug has a simple reproduction rule - splitting
+  #       the two new child bugs will start with age=0 and size equal to half
+  #       of their mothers, located in the mother's cell.
+  #   """
+  #   if not self.will_reproduce():
+  #     return None
+  #
+  #   reproduce_info = {
+  #       "size": self.size / 2.0,
+  #       "point": [self.point.x, self.point.y],
+  #       "mother_bug": self
+  #   }
+  #   return reproduce_info
+
+
