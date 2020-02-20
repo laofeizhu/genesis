@@ -58,6 +58,12 @@ class World(object):
     For all the bugs, update their size and check if new bug's created.
     For all the foods, update their size based on consumption.
     After food update, update fields.
+    Note: This part can be changed to decouple world and bug. For example:
+    bug.reproduce() makes a call to bug client, and bug client calculates
+    whether or not reproduces and tells the server. Server make updates
+    accordingly.
+    law.calculate_food_for_bugs(self) makes a call to bugs asking for a
+    current food update.
     """
     self._step_count += 1
     # Bugs can eat or move in one step.
@@ -78,6 +84,8 @@ class World(object):
       bug = self._bugs[bug_id]
       growth = bug.grow()
       self._handle_bug_growth(growth)
+    # Smell changed after eating food.
+    self.update()
 
   def create_bug(self, options={}):
     bug = Bug(point=self._point_or_random(options),
