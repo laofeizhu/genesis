@@ -11,3 +11,5 @@ htmlcov
 
 .idea
 .cache
+
+.pytest_cache
