@@ -14,10 +14,8 @@ import pandas as pd
 from bug import Bug
 from config import CONFIG
 from food import Food
-from geometry import Point, Vector
+from geometry import Point
 from matplotlib import pyplot as plt
-from matplotlib import cm
-from mpl_toolkits import mplot3d
 
 class Cell(Point):
   def __init__(self, x, y):
