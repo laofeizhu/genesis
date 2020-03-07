@@ -6,7 +6,7 @@ DEFAULT_DIM = CONFIG["dim"]
 
 class Point(object):
 
-  def __init__(self, p, dim=DEFAULT_DIM):
+  def __init__(self, x, y, dim=DEFAULT_DIM):
     """
     Point should always be created from world since the dimension
     is an attribute of the world.

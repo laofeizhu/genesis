@@ -3,6 +3,7 @@ import uuid
 
 from utils.geometry import Point
 
+
 class Food(object):
 
   def __init__(self, size=10, point=None):
@@ -22,4 +23,4 @@ class Food(object):
         "size": self.size,
         "point": (self.point.x, self.point.y),
         "step": step,
-        }
+    }

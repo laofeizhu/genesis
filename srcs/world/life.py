@@ -15,23 +15,11 @@ import uuid
 import random
 
 from enum import Enum
-from geometry import Point, Vector
+from utils.geometry import Point
+from utils.geometry import Vector
 
 
-class Gender(Enum):
-  MALE = 1
-  FEMALE = 2
-
-
-class Bug(life):
-  def __init__(self, size=None, point=None, age=None):
-    self.id = uuid.uuid4()
-    self.size = size if size else 0
-    self.point = point if point else Point.random()
-    self.age = age if age else 0
-    
-
-class Life(object):
+class Bug(object):
   """The bug class"""
 
   def __init__(self, size=None, point=None, age=None):
